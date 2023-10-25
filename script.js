@@ -1,6 +1,8 @@
 
 let map;
 var restaurantPhones = []
+const restaurantMarkers = [];
+var _send = require("call-me-maybe-master/lib/index")
 
 function handleLocationError(browserHasGeolocation, infoWindow, pos) {
   infoWindow.setPosition(pos);
@@ -49,15 +51,16 @@ document.getElementById('form').addEventListener('submit',
 
           //Percorre o array de telefones, usa cada um deles como parâmetro pra fazer busca no YELP
           restaurantPhones.forEach(phone => { 
-            buscarRestaurantesPorFoneYELP(phone)
+            businessMatch(phone)
           });
 
           function callback(results, status) {
             if (status == google.maps.places.PlacesServiceStatus.OK) {
               for (var i = 0; i < results.length; i++) {
                 createMarker(results[i]);
-                console.log(results[i])
-                restaurantPhones.push(results[i].phone)
+                //console.log(results[i])
+                //adicionaRestauranteNaTabela(results[i])
+                restaurantPhones.push(results[i].name)
               }
             }
           }
@@ -93,13 +96,16 @@ function createMarker(place) {
 
 //--------------------------------------- YELP API ----------------------------------------------//
 const endpoint = 'https://api-motor-de-busca-55jb6cp3q-matheus-s-projects.vercel.app/';
-let location1 = "curitiba"
 
-// Função para buscar restaurantes com base na geolocalização do usuário
-function buscarRestaurantesPorFoneYELP(phone) {
-  const url = `${endpoint}?term=restaurantes&phone=${phone}`;
+function businessMatch(place) {
 
-  // Fazendo uma requisição GET para a API do Yelp Fusion
+  params = {
+    name: place.name,
+    address1: place.vicinity
+  }
+
+  const url = `${endpoint}?matches=${params}`;
+
   fetch(url, {
     headers: {
       'Access-Control-Allow-Origin': '*'
@@ -108,13 +114,28 @@ function buscarRestaurantesPorFoneYELP(phone) {
   })
     .then(response => response.json())
     .then(data => {
-      data.forEach(restaurante => {
-        adicionaRestaurantesNaTabela(restaurante);
-      });
+        console.log(data)
+        adicionaRestauranteNaTabela(data);
     })
     .catch(error => {
       console.error('Erro ao buscar restaurantes:', error);
     });
+}
+
+
+
+function getPlacePhone(placeId) {
+  service.getDetails({
+    placeId: placeId
+  }, (place, status) => {
+    if (status === google.maps.places.PlacesServiceStatus.OK) {
+      // Agora você pode acessar as informações do lugar, incluindo o número de telefone
+      const phoneNumber = place.formatted_phone_number;
+        return phoneNumber
+    } else {
+      console.error('Erro ao obter detalhes do lugar:', status);
+    }
+  });
 }
 
 // Função para exibir os restaurantes em uma tabela HTML
@@ -123,18 +144,15 @@ function adicionaRestauranteNaTabela(restaurante) {
   var iframeDocument = iframe.contentDocument || iframe.contentWindow.document;
   var tabela = iframeDocument.getElementById("minhaTabela").getElementsByTagName("tbody")[0];
 
+  //console.log(restaurante)
   // Limpa a tabela antes de adicionar novos dados
-  tabela.innerHTML = '';
+  //tabela.innerHTML = '';
   const row = tabela.insertRow();
   row.insertCell().textContent = restaurante.name;
-  row.insertCell().textContent = restaurante.location.address1;
+  row.insertCell().textContent = restaurante.vicinity;
   row.insertCell().textContent = restaurante.phone;
   row.insertCell().textContent = restaurante.rating;
-
+console.log("fone: ", restaurante.phone)
 }
-
-// Exemplo de uso: chame a função buscarRestaurantes passando a latitude e longitude do usuário
-// buscarRestaurantes(latitude, longitude);
-
 
 
