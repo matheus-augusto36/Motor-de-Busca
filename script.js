@@ -2,7 +2,7 @@
 let map;
 var restaurantPhones = []
 const restaurantMarkers = [];
-var _send = require("call-me-maybe-master/lib/index")
+//var _send = require("call-me-maybe-master/lib/index")
 
 function handleLocationError(browserHasGeolocation, infoWindow, pos) {
   infoWindow.setPosition(pos);
@@ -41,8 +41,11 @@ document.getElementById('form').addEventListener('submit',
           var nearbyRequest = {
             location: pos,
             radius: '1000',
-            fields: ['name', 'geometry'],
-            type: ['restaurant']
+            fields: ['name', 'geometry', 'delivery', 'allowsDogs'],
+            type: ['restaurant'],
+            headers: {
+              'X-Goog-FieldMask': ['places.allowsDogs']
+            }
           };
 
           service = new google.maps.places.PlacesService(map);
@@ -57,9 +60,10 @@ document.getElementById('form').addEventListener('submit',
           function callback(results, status) {
             if (status == google.maps.places.PlacesServiceStatus.OK) {
               for (var i = 0; i < results.length; i++) {
+
                 createMarker(results[i]);
-                //console.log(results[i])
-                //adicionaRestauranteNaTabela(results[i])
+                console.log(results[i])
+                adicionaRestauranteNaTabela(results[i])
                 restaurantPhones.push(results[i].name)
               }
             }
@@ -93,64 +97,24 @@ function createMarker(place) {
 
 }
 
-
-//--------------------------------------- YELP API ----------------------------------------------//
-const endpoint = 'https://api-motor-de-busca-55jb6cp3q-matheus-s-projects.vercel.app/';
-
-function businessMatch(place) {
-
-  params = {
-    name: place.name,
-    address1: place.vicinity
-  }
-
-  const url = `${endpoint}?matches=${params}`;
-
-  fetch(url, {
-    headers: {
-      'Access-Control-Allow-Origin': '*'
-    }
-    
-  })
-    .then(response => response.json())
-    .then(data => {
-        console.log(data)
-        adicionaRestauranteNaTabela(data);
-    })
-    .catch(error => {
-      console.error('Erro ao buscar restaurantes:', error);
-    });
-}
-
-
-
-function getPlacePhone(placeId) {
-  service.getDetails({
-    placeId: placeId
-  }, (place, status) => {
-    if (status === google.maps.places.PlacesServiceStatus.OK) {
-      // Agora você pode acessar as informações do lugar, incluindo o número de telefone
-      const phoneNumber = place.formatted_phone_number;
-        return phoneNumber
-    } else {
-      console.error('Erro ao obter detalhes do lugar:', status);
-    }
-  });
-}
-
 // Função para exibir os restaurantes em uma tabela HTML
 function adicionaRestauranteNaTabela(restaurante) {
   var iframe = document.getElementById("iframe")
   var iframeDocument = iframe.contentDocument || iframe.contentWindow.document;
   var tabela = iframeDocument.getElementById("minhaTabela").getElementsByTagName("tbody")[0];
-
+  let resultados = document.getElementById("resultados")
+ 
+  resultados.style.display = "flex"
+  document.getElementsByTagName("main")[0].style.display = "block"
+  document.getElementsByTagName("header")[0].style.height = "25%"
+  document.getElementsByTagName("form")[0].style.marginTop = "10px"
   //console.log(restaurante)
   // Limpa a tabela antes de adicionar novos dados
   //tabela.innerHTML = '';
   const row = tabela.insertRow();
   row.insertCell().textContent = restaurante.name;
   row.insertCell().textContent = restaurante.vicinity;
-  row.insertCell().textContent = restaurante.phone;
+  row.insertCell().textContent = restaurante.priceLevel;
   row.insertCell().textContent = restaurante.rating;
 console.log("fone: ", restaurante.phone)
 }
