@@ -11,7 +11,7 @@ body {
   background-color: #fad36e;
   height: 100%;
   margin: 0;
-  padding: 0
+  padding: 0;
 }
 
 /*
@@ -19,6 +19,27 @@ input {
   
 }
 */
+
+p {
+  text-align: center;
+  color: #FDF2D4;
+}
+
+a {
+  width: 20px;
+}
+
+footer {
+  background-color: #C29111;
+  height: 20vh;
+  width: 99vw;
+  display: flex;
+  align-items: center;
+  flex-direction: row;
+  justify-content: center;
+  position: static;
+  transform: translate(0%, 270%);
+}
 
 #resultados {
   display: none;
@@ -36,7 +57,7 @@ button img {
 
 main {
   width: 100%;
-  height: 90%;
+  height: 50vh;
   display: none;
 }
 
