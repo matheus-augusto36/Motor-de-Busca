@@ -119,6 +119,8 @@ document.getElementById('form').addEventListener('submit',
                   adicionaRestauranteNaTabela(results[i])
                   restaurantPhones.push(results[i].name)
                 }
+                encontrarMelhorRestaurante()
+                ordenarRestaurantes()
               }
             }
           },
@@ -167,10 +169,67 @@ function adicionaRestauranteNaTabela(restaurante) {
   //tabela.innerHTML = '';
   const row = tabela.insertRow();
   row.insertCell().textContent = restaurante.name;
-  row.insertCell().textContent = restaurante.vicinity;
+  row.insertCell().textContent = restaurante.formatted_address;
   row.insertCell().textContent = restaurante.price_level;
   row.insertCell().textContent = restaurante.rating;
   //console.log("fone: ", restaurante.phone)
 }
 
 
+function encontrarMelhorRestaurante() {
+  var tabelaRestaurantes = document.getElementById("minhaTabela");
+  var linhas = tabelaRestaurantes.getElementsByTagName("tr");
+
+  // Inicializa com valores "infinitos" para avaliação e preço
+  var melhor = { avaliacao: -Infinity, preco: Infinity, restaurante: null };
+
+  for (var i = 0; i < linhas.length; i++) {
+      var linha = linhas[i];
+      var colunas = linha.getElementsByTagName("td");
+
+      // Verifica se há pelo menos 4 colunas (para evitar erro se a tabela não estiver bem formatada)
+      if (colunas.length >= 4) {
+          var precoRestaurante = parseInt(colunas[2].textContent, 10); // A terceira coluna (índice 2) contém o "price-level"
+          var avaliacaoRestaurante = parseFloat(colunas[3].textContent); // A quarta coluna (índice 3) contém a "Avaliacao"
+
+          if (avaliacaoRestaurante > melhor.avaliacao || (avaliacaoRestaurante === melhor.avaliacao && precoRestaurante < melhor.preco)) {
+              melhor = { restaurante: colunas[0].textContent, avaliacao: avaliacaoRestaurante, preco: precoRestaurante };
+              
+          }
+      }
+  }
+}
+
+function ordenarRestaurantes() {
+  var tabelaRestaurantes = document.getElementById("minhaTabela");
+  var linhas = Array.from(tabelaRestaurantes.getElementsByTagName("tr"));
+
+  // Remove a primeira linha (cabeçalho)
+  linhas.shift();
+
+  // Ordena as linhas com base na avaliação (decrescente) e no preço (crescente)
+  linhas.sort(function (a, b) {
+      var avaliacaoA = parseFloat(a.getElementsByTagName("td")[3].textContent); // Índice 3 para a "Avaliacao"
+      var avaliacaoB = parseFloat(b.getElementsByTagName("td")[3].textContent);
+
+      var precoA = parseInt(a.getElementsByTagName("td")[2].textContent, 10); // Índice 2 para o "price-level"
+      var precoB = parseInt(b.getElementsByTagName("td")[2].textContent, 10);
+
+      // Ordena por avaliação (decrescente)
+      if (avaliacaoB !== avaliacaoA) {
+          return avaliacaoB - avaliacaoA;
+      }
+
+      // Se as avaliações forem iguais, ordena por preço (crescente)
+      return precoA - precoB;
+  });
+
+  // Limpa a tabela
+  tabelaRestaurantes.innerHTML = "";
+
+  // Adiciona as linhas ordenadas de volta à tabela
+  tabelaRestaurantes.appendChild(document.getElementsByTagName("thead")[0]); // Adiciona o cabeçalho de volta
+  linhas.forEach(function (linha) {
+      tabelaRestaurantes.appendChild(linha);
+  });
+}
